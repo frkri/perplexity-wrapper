@@ -23,6 +23,14 @@ def load_cookies():
 
 cookies = load_cookies()
 client = perplexity.Client(cookies) if cookies else perplexity.Client()
+MODEL_ID = "perplexity"
+
+MODEL_DATA = {
+    "id": MODEL_ID,
+    "object": "model",
+    "created": int(time.time()),
+    "owned_by": "perplexity-wrapper",
+}
 
 app = FastAPI()
 
@@ -44,6 +52,18 @@ class ChatReq(BaseModel):
     model: str = "perplexity"
     messages: list[Msg]
     stream: bool = False
+
+
+@app.get("/v1/models")
+def list_models():
+    return {"object": "list", "data": [MODEL_DATA]}
+
+
+@app.get("/v1/models/{model_id}")
+def get_model(model_id: str):
+    if model_id != MODEL_ID:
+        raise HTTPException(404, "model not found")
+    return MODEL_DATA
 
 
 @app.post("/v1/chat/completions")
