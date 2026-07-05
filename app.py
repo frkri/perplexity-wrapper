@@ -1,7 +1,7 @@
 import json
 import time
-import os
 import uuid
+from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -11,8 +11,17 @@ from pydantic import BaseModel
 import perplexity
 
 
-cookies_raw = os.getenv("PERPLEXITY_COOKIES", "").strip()
-cookies = json.loads(cookies_raw) if cookies_raw else None
+def load_cookies():
+    cookies_file = Path("/cookies.json")
+    if cookies_file.exists():
+        cookies_raw = cookies_file.read_text(encoding="utf-8").strip()
+        return json.loads(cookies_raw) if cookies_raw else None
+
+    cookies_raw = ""
+    return json.loads(cookies_raw) if cookies_raw else None
+
+
+cookies = load_cookies()
 client = perplexity.Client(cookies) if cookies else perplexity.Client()
 
 app = FastAPI()
